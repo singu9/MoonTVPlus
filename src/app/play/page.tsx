@@ -175,6 +175,7 @@ function PlayPageClient() {
     Array<{ episodeId: number; episodeTitle: string }>
   >([]);
   const [danmakuLoading, setDanmakuLoading] = useState(false);
+  const [danmakuCount, setDanmakuCount] = useState(0);
   const danmakuPluginRef = useRef<any>(null);
   const danmakuSettingsRef = useRef(danmakuSettings);
 
@@ -1365,9 +1366,14 @@ function PlayPageClient() {
       });
       danmakuPluginRef.current.load();
 
+      setDanmakuCount(comments.length);
       console.log(`弹幕加载成功，共 ${comments.length} 条`);
+
+      // 延迟一下让用户看到弹幕数量
+      await new Promise((resolve) => setTimeout(resolve, 1500));
     } catch (error) {
       console.error('加载弹幕失败:', error);
+      setDanmakuCount(0);
     } finally {
       setDanmakuLoading(false);
     }
@@ -1411,26 +1417,47 @@ function PlayPageClient() {
     // 检查是否有记忆
     const memory = loadDanmakuMemory(title);
     if (memory) {
-      console.log('使用记忆的弹幕选择:', memory);
-      setCurrentDanmakuSelection({
-        animeId: memory.animeId,
-        episodeId: memory.episodeId,
-        animeTitle: memory.animeTitle,
-        episodeTitle: memory.episodeTitle,
-      });
+      console.log('使用记忆的弹幕动漫:', memory.animeTitle);
 
       // 获取该动漫的所有剧集列表
       try {
         const episodesResult = await getEpisodes(memory.animeId);
         if (episodesResult.success && episodesResult.bangumi.episodes.length > 0) {
           setDanmakuEpisodesList(episodesResult.bangumi.episodes);
+
+          // 根据当前集数选择对应的弹幕
+          const currentEp = currentEpisodeIndexRef.current;
+          const episode =
+            episodesResult.bangumi.episodes[
+              Math.min(currentEp, episodesResult.bangumi.episodes.length - 1)
+            ];
+
+          if (episode) {
+            const selection: DanmakuSelection = {
+              animeId: memory.animeId,
+              episodeId: episode.episodeId,
+              animeTitle: memory.animeTitle,
+              episodeTitle: episode.episodeTitle,
+            };
+
+            setCurrentDanmakuSelection(selection);
+
+            // 更新选择记忆
+            saveDanmakuMemory(
+              title,
+              selection.animeId,
+              selection.episodeId,
+              selection.animeTitle,
+              selection.episodeTitle
+            );
+
+            await loadDanmaku(episode.episodeId);
+            return;
+          }
         }
       } catch (error) {
         console.error('获取弹幕剧集列表失败:', error);
       }
-
-      await loadDanmaku(memory.episodeId);
-      return;
     }
 
     // 自动搜索弹幕
@@ -2706,10 +2733,33 @@ function PlayPageClient() {
                 {/* 弹幕加载蒙层 */}
                 {danmakuLoading && (
                   <div className='absolute top-0 right-0 m-4 bg-black/80 backdrop-blur-sm rounded-lg px-4 py-2 z-[600] flex items-center gap-2 border border-green-500/30'>
-                    <div className='w-4 h-4 border-2 border-green-500 border-t-transparent rounded-full animate-spin'></div>
-                    <span className='text-sm font-medium text-green-400'>
-                      加载弹幕中...
-                    </span>
+                    {danmakuCount > 0 ? (
+                      <>
+                        <svg
+                          className='w-4 h-4 text-green-500'
+                          fill='none'
+                          stroke='currentColor'
+                          viewBox='0 0 24 24'
+                        >
+                          <path
+                            strokeLinecap='round'
+                            strokeLinejoin='round'
+                            strokeWidth={2}
+                            d='M5 13l4 4L19 7'
+                          />
+                        </svg>
+                        <span className='text-sm font-medium text-green-400'>
+                          已加载 {danmakuCount} 条弹幕
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <div className='w-4 h-4 border-2 border-green-500 border-t-transparent rounded-full animate-spin'></div>
+                        <span className='text-sm font-medium text-green-400'>
+                          加载弹幕中...
+                        </span>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
