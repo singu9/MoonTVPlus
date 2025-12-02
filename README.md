@@ -1,22 +1,27 @@
-# MoonTV
+# MoonTVPlus
 
 <div align="center">
-  <img src="public/logo.png" alt="MoonTV Logo" width="120">
+  <img src="public/logo.png" alt="MoonTVPlus Logo" width="120">
 </div>
 
-> 🎬 **MoonTV** 是一个开箱即用的、跨平台的影视聚合播放器。它基于 **Next.js 14** + **Tailwind&nbsp;CSS** + **TypeScript** 构建，支持多资源搜索、在线播放、收藏同步、播放记录、云端存储，让你可以随时随地畅享海量免费影视内容。
+> 🎬 **MoonTVPlus** 是基于 [MoonTV v100](https://github.com/MoonTechLab/LunaTV) 二次开发的增强版影视聚合播放器。它在原版基础上新增了外部播放器支持、视频超分、弹幕系统、评论抓取等实用功能，提供更强大的观影体验。
 
 <div align="center">
-
 ![Next.js](https://img.shields.io/badge/Next.js-14-000?logo=nextdotjs)
 ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3-38bdf8?logo=tailwindcss)
 ![TypeScript](https://img.shields.io/badge/TypeScript-4.x-3178c6?logo=typescript)
 ![License](https://img.shields.io/badge/License-MIT-green)
 ![Docker Ready](https://img.shields.io/badge/Docker-ready-blue?logo=docker)
-
 </div>
 
 ---
+
+## 🎉 相对原版新增内容
+
+- 🎮 **外部播放器跳转**：支持 PotPlayer、VLC、MPV、MX Player、nPlayer、IINA 等多种外部播放器
+- ✨ **视频超分 (Anime4K)**：使用 WebGPU 技术实现实时视频画质增强（支持 2x/3x/4x 超分）
+- 💬 **弹幕系统**：完整的弹幕搜索、匹配、加载功能，支持弹幕设置持久化
+- 📝 **豆瓣评论抓取**：自动抓取并展示豆瓣电影短评，支持分页加载
 
 ## ✨ 功能特性
 
@@ -41,16 +46,28 @@
 
 ## 🗺 目录
 
+- [弹幕后端部署](#弹幕后端部署)
 - [技术栈](#技术栈)
 - [部署](#部署)
 - [配置文件](#配置文件)
 - [自动更新](#自动更新)
 - [环境变量](#环境变量)
 - [AndroidTV 使用](#AndroidTV-使用)
-- [Roadmap](#roadmap)
 - [安全与隐私提醒](#安全与隐私提醒)
 - [License](#license)
 - [致谢](#致谢)
+
+## 弹幕后端部署
+
+要使用弹幕功能，需要额外部署弹幕 API 后端服务。
+
+### 部署步骤
+
+1. 按照[danmu_api](https://github.com/huangxd-/danmu_api.git)教程部署后端
+2. 建议配置SOURCE_ORDER或PLATFORM_ORDER环境变量，默认弹幕源很少
+3. 在管理面板设置后端地址
+
+
 
 ## 技术栈
 
@@ -72,7 +89,7 @@
 ```yml
 services:
   moontv-core:
-    image: ghcr.io/moontechlab/lunatv:latest
+    image: ghcr.io/mtvpls/moontvplus:latest
     container_name: moontv-core
     restart: on-failure
     ports:
@@ -106,7 +123,7 @@ volumes:
 ```yml
 services:
   moontv-core:
-    image: ghcr.io/moontechlab/lunatv:latest
+    image: ghcr.io/mtvpls/moontvplus:latest
     container_name: moontv-core
     restart: on-failure
     ports:
@@ -142,7 +159,7 @@ networks:
 ```yml
 services:
   moontv-core:
-    image: ghcr.io/moontechlab/lunatv:latest
+    image: ghcr.io/mtvpls/moontvplus:latest
     container_name: moontv-core
     restart: on-failure
     ports:
@@ -280,6 +297,7 @@ NEXT_PUBLIC_DOUBAN_IMAGE_PROXY_TYPE 选项解释：
 ## 致谢
 
 - [ts-nextjs-tailwind-starter](https://github.com/theodorusclarence/ts-nextjs-tailwind-starter) — 项目最初基于该脚手架。
+- [MoonTV](https://github.com/mtvpls/moontvplus)— 由此启发，再次站在巨人的肩膀上。
 - [LibreTV](https://github.com/LibreSpark/LibreTV) — 由此启发，站在巨人的肩膀上。
 - [ArtPlayer](https://github.com/zhw2590582/ArtPlayer) — 提供强大的网页视频播放器。
 - [HLS.js](https://github.com/video-dev/hls.js) — 实现 HLS 流媒体在浏览器中的播放支持。
@@ -289,4 +307,4 @@ NEXT_PUBLIC_DOUBAN_IMAGE_PROXY_TYPE 选项解释：
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=MoonTechLab/LunaTV&type=Date)](https://www.star-history.com/#MoonTechLab/LunaTV&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=mtvpls/moontvplus&type=Date)](https://www.star-history.com/#mtvpls/moontvplus&Date)
