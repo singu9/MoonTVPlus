@@ -19,6 +19,7 @@ import {
   savePlayRecord,
   saveSkipConfig,
   subscribeToDataUpdates,
+  getDanmakuFilterConfig,
 } from '@/lib/db.client';
 import {
   convertDanmakuFormat,
@@ -31,12 +32,13 @@ import {
   searchAnime,
 } from '@/lib/danmaku/api';
 import type { DanmakuAnime, DanmakuSelection, DanmakuSettings } from '@/lib/danmaku/types';
-import { SearchResult } from '@/lib/types';
+import { SearchResult, DanmakuFilterConfig } from '@/lib/types';
 import { getVideoResolutionFromM3u8, processImageUrl } from '@/lib/utils';
 
 import EpisodeSelector from '@/components/EpisodeSelector';
 import PageLayout from '@/components/PageLayout';
 import DoubanComments from '@/components/DoubanComments';
+import DanmakuFilterSettings from '@/components/DanmakuFilterSettings';
 import { useEnableComments } from '@/hooks/useEnableComments';
 
 // 扩展 HTMLVideoElement 类型以支持 hls 属性
@@ -168,6 +170,8 @@ function PlayPageClient() {
   const [danmakuSettings, setDanmakuSettings] = useState<DanmakuSettings>(
     loadDanmakuSettings()
   );
+  const [danmakuFilterConfig, setDanmakuFilterConfig] = useState<DanmakuFilterConfig | null>(null);
+  const danmakuFilterConfigRef = useRef<DanmakuFilterConfig | null>(null);
   const [currentDanmakuSelection, setCurrentDanmakuSelection] =
     useState<DanmakuSelection | null>(null);
   const [danmakuEpisodesList, setDanmakuEpisodesList] = useState<
@@ -181,10 +185,37 @@ function PlayPageClient() {
   // 多条弹幕匹配结果
   const [danmakuMatches, setDanmakuMatches] = useState<DanmakuAnime[]>([]);
   const [showDanmakuSourceSelector, setShowDanmakuSourceSelector] = useState(false);
+  const [showDanmakuFilterSettings, setShowDanmakuFilterSettings] = useState(false);
 
   useEffect(() => {
     danmakuSettingsRef.current = danmakuSettings;
   }, [danmakuSettings]);
+
+  // 加载弹幕过滤配置
+  useEffect(() => {
+    const loadFilterConfig = async () => {
+      try {
+        const config = await getDanmakuFilterConfig();
+        if (config) {
+          setDanmakuFilterConfig(config);
+          danmakuFilterConfigRef.current = config;
+        } else {
+          // 如果没有配置，设置默认空配置
+          const defaultConfig: DanmakuFilterConfig = { rules: [] };
+          setDanmakuFilterConfig(defaultConfig);
+          danmakuFilterConfigRef.current = defaultConfig;
+        }
+      } catch (error) {
+        console.error('加载弹幕过滤配置失败:', error);
+      }
+    };
+    loadFilterConfig();
+  }, []);
+
+  // 同步弹幕过滤配置到ref
+  useEffect(() => {
+    danmakuFilterConfigRef.current = danmakuFilterConfig;
+  }, [danmakuFilterConfig]);
 
   // 视频基本信息
   const [videoTitle, setVideoTitle] = useState(searchParams.get('title') || '');
@@ -2098,11 +2129,23 @@ function PlayPageClient() {
             theme: 'dark',
             filter: (danmu: any) => {
               // 应用过滤规则
-              if (danmakuSettingsRef.current.filterRules.length > 0) {
-                for (const rule of danmakuSettingsRef.current.filterRules) {
+              const filterConfig = danmakuFilterConfigRef.current;
+              if (filterConfig && filterConfig.rules.length > 0) {
+                for (const rule of filterConfig.rules) {
+                  // 跳过未启用的规则
+                  if (!rule.enabled) continue;
+
                   try {
-                    if (new RegExp(rule).test(danmu.text)) {
-                      return false;
+                    if (rule.type === 'normal') {
+                      // 普通模式：字符串包含匹配
+                      if (danmu.text.includes(rule.keyword)) {
+                        return false;
+                      }
+                    } else if (rule.type === 'regex') {
+                      // 正则模式：正则表达式匹配
+                      if (new RegExp(rule.keyword).test(danmu.text)) {
+                        return false;
+                      }
                     }
                   } catch (e) {
                     console.error('弹幕过滤规则错误:', e);
@@ -2142,6 +2185,15 @@ function PlayPageClient() {
                 // ignore
               }
               return newVal ? '当前开启' : '当前关闭';
+            },
+          },
+          {
+            html: '弹幕过滤',
+            icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" fill="#ffffff"/><path d="M8 12h8" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/></svg>',
+            tooltip: '配置弹幕过滤规则',
+            onClick() {
+              setShowDanmakuFilterSettings(true);
+              return '打开设置';
             },
           },
           ...(webGPUSupported ? [
@@ -3344,6 +3396,16 @@ function PlayPageClient() {
           </div>
         )}
       </div>
+
+      {/* 弹幕过滤设置对话框 */}
+      <DanmakuFilterSettings
+        isOpen={showDanmakuFilterSettings}
+        onClose={() => setShowDanmakuFilterSettings(false)}
+        onConfigUpdate={(config) => {
+          setDanmakuFilterConfig(config);
+          danmakuFilterConfigRef.current = config;
+        }}
+      />
     </PageLayout>
   );
 }
