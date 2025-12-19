@@ -2145,6 +2145,39 @@ function PlayPageClient() {
   // ---------------------------------------------------------------------------
   // 弹幕处理函数
   // ---------------------------------------------------------------------------
+8  
+  // 匹配弹幕集数：优先根据集数标题中的数字匹配，降级到索引匹配
+  const matchDanmakuEpisode = (
+    currentEpisodeIndex: number,
+    danmakuEpisodes: Array<{ episodeId: number; episodeTitle: string }>,
+    videoEpisodeTitle?: string
+  ) => {
+    if (!danmakuEpisodes.length) return null;
+
+    const extractEpisodeNumber = (title: string): number | null => {
+      if (!title) return null;
+      const match = title.match(/^(\d+)$|第?\s*(\d+)\s*[集话話]?/);
+      return match ? parseInt(match[1] || match[2], 10) : null;
+    };
+
+    if (videoEpisodeTitle) {
+      const episodeNum = extractEpisodeNumber(videoEpisodeTitle);
+      if (episodeNum !== null) {
+        for (const ep of danmakuEpisodes) {
+          const danmakuNum = extractEpisodeNumber(ep.episodeTitle);
+          if (danmakuNum === episodeNum) {
+            console.log(`[弹幕匹配] 根据集数标题匹配: ${videoEpisodeTitle} -> ${ep.episodeTitle}`);
+            return ep;
+          }
+        }
+      }
+    }
+
+    const index = Math.min(currentEpisodeIndex, danmakuEpisodes.length - 1);
+    console.log(`[弹幕匹配] 降级到索引匹配: 索引 ${currentEpisodeIndex} -> ${danmakuEpisodes[index].episodeTitle}`);
+    return danmakuEpisodes[index];
+  };
+
   // 加载弹幕到播放器
   const loadDanmaku = async (episodeId: number) => {
     if (!danmakuPluginRef.current) {
@@ -2288,10 +2321,8 @@ function PlayPageClient() {
 
         // 根据当前集数选择对应的弹幕
         const currentEp = currentEpisodeIndexRef.current;
-        const episode =
-          episodesResult.bangumi.episodes[
-            Math.min(currentEp, episodesResult.bangumi.episodes.length - 1)
-          ];
+        const videoEpTitle = detailRef.current?.episodes_titles?.[currentEp];
+        const episode = matchDanmakuEpisode(currentEp, episodesResult.bangumi.episodes, videoEpTitle);
 
         if (episode) {
           const selection: DanmakuSelection = {
@@ -2392,10 +2423,8 @@ function PlayPageClient() {
 
           // 根据当前集数选择对应的弹幕
           const currentEp = currentEpisodeIndexRef.current;
-          const episode =
-            episodesResult.bangumi.episodes[
-              Math.min(currentEp, episodesResult.bangumi.episodes.length - 1)
-            ];
+          const videoEpTitle = detailRef.current?.episodes_titles?.[currentEp];
+          const episode = matchDanmakuEpisode(currentEp, episodesResult.bangumi.episodes, videoEpTitle);
 
           if (episode) {
             const selection: DanmakuSelection = {
@@ -2505,10 +2534,8 @@ function PlayPageClient() {
 
           // 根据当前集数选择对应的弹幕
           const currentEp = currentEpisodeIndexRef.current;
-          const episode =
-            episodesResult.bangumi.episodes[
-              Math.min(currentEp, episodesResult.bangumi.episodes.length - 1)
-            ];
+          const videoEpTitle = detailRef.current?.episodes_titles?.[currentEp];
+          const episode = matchDanmakuEpisode(currentEp, episodesResult.bangumi.episodes, videoEpTitle);
 
           if (episode) {
             const selection: DanmakuSelection = {
