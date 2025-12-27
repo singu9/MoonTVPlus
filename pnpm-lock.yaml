@@ -39,8 +39,8 @@ importers:
         specifier: ^1.0.0
         version: 1.0.0(@webgpu/types@0.1.66)
       artplayer:
-        specifier: ^5.2.5
-        version: 5.2.5
+        specifier: ^5.3.0
+        version: 5.3.0
       artplayer-plugin-danmuku:
         specifier: ^5.2.0
         version: 5.2.0
@@ -2057,8 +2057,8 @@ packages:
   artplayer-plugin-danmuku@5.2.0:
     resolution: {integrity: sha512-iHHSGEc0J+gl7imX4nmLqqC7LXmv8xeGf2lUevhhyUCoiCRZplecpKQICHjErVb1Yqyp1xCy6Sp8eYN+EpFWFw==}
 
-  artplayer@5.2.5:
-    resolution: {integrity: sha512-Ogym5rvkAJ4VLncM4Apl3TJ/a/ozM3csvY4IKuuMR++hUmEZgj/HaGsNonwx8r56nsqiZYE7O4vS1HFZl+NBSg==}
+  artplayer@5.3.0:
+    resolution: {integrity: sha512-yExO39MpEg4P+bxgChxx1eJfiUPE4q1QQRLCmqGhlsj+ANuaoEkR8hF93LdI5ZyrAcIbJkuEndxEiUoKobifDw==}
 
   assert@2.0.0:
     resolution: {integrity: sha512-se5Cd+js9dXJnu6Ag2JFc00t+HmHOen+8Q+L7O9zI0PqQXr20uk2J0XQqMxZEeo5U50o8Nvmmx7dZrl+Ufr35A==}
@@ -7756,7 +7756,7 @@ snapshots:
 
   artplayer-plugin-danmuku@5.2.0: {}
 
-  artplayer@5.2.5:
+  artplayer@5.3.0:
     dependencies:
       option-validator: 2.0.6
 

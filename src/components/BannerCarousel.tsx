@@ -246,7 +246,7 @@ export default function BannerCarousel({ autoPlayInterval = 5000 }: BannerCarous
               e.stopPropagation();
               handlePlay(currentItem.title);
             }}
-            className="hidden md:flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors pointer-events-auto shadow-lg"
+            className="hidden md:flex items-center gap-2 px-6 py-3 bg-gray-500/30 hover:bg-gray-500/50 backdrop-blur-sm text-white font-semibold rounded-lg transition-all pointer-events-auto"
           >
             <Play className="w-5 h-5 fill-white" />
             立即播放
