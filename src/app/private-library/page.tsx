@@ -82,11 +82,11 @@ export default function PrivateLibraryPage() {
   const startXRef = useRef(0);
   const scrollLeftRef = useRef(0);
   const isInitializedRef = useRef(false);
+  const hasRestoredViewRef = useRef(false);
 
   // 从URL初始化状态，并检查配置自动跳转
   useEffect(() => {
     const urlSourceParam = searchParams.get('source');
-    const urlView = searchParams.get('view');
 
     // 解析source参数
     const parsed = parseSourceParam(urlSourceParam);
@@ -99,10 +99,6 @@ export default function PrivateLibraryPage() {
       if (parsed.embyKey) {
         setEmbyKey(parsed.embyKey);
       }
-    }
-
-    if (urlView) {
-      setSelectedView(urlView);
     }
 
     isInitializedRef.current = true;
@@ -196,8 +192,8 @@ export default function PrivateLibraryPage() {
         } else {
           setEmbyViews(data.views || []);
 
-          // 分类加载完成后，检查URL中是否有view参数（仅在初始化时）
-          if (!isInitializedRef.current) {
+          // 分类加载完成后，检查URL中是否有view参数（只在第一次加载时恢复）
+          if (!hasRestoredViewRef.current) {
             const urlView = searchParams.get('view');
             if (urlView && data.views && data.views.length > 0) {
               // 检查该view是否存在于分类列表中
@@ -206,6 +202,7 @@ export default function PrivateLibraryPage() {
                 setSelectedView(urlView);
               }
             }
+            hasRestoredViewRef.current = true;
           }
         }
       } catch (err) {
